@@ -11,6 +11,7 @@ class Token :
 class Literal(Token) :
     def __init__(self, type, value):
         super().__init__('LITERAL', value)
+        self.type = type
 
 class Types(str, enum.Enum) :
     VOID='void'

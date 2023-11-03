@@ -21,92 +21,92 @@ class Tokenizer :
         self.length = len(content)
         self.index=0
     
-    def __peak_current__(self) :
+    def _peak_current(self) :
         if self.index >= self.length :
             return None
         return self.content[self.index]
     
-    def __peak_next__(self) :
+    def _peak_next(self) :
         if self.index+1 >= self.length :
             return None
         return self.content[self.index + 1]
 
-    def __eat_to_next__(self) :
+    def _eat_to_next(self) :
         self.index+= 1
-        return self.__peak_current__()
+        return self._peak_current()
 
-    def __eat_nb__(self) :
-        nb = self.__peak_current__()
-        curr = self.__eat_to_next__()
+    def _eat_nb__(self) :
+        nb = self._peak_current()
+        curr = self._eat_to_next()
         nb_type = int
         while curr in Tokenizer.NUMBERS:
             nb += curr
-            curr = self.__eat_to_next__()
+            curr = self._eat_to_next()
             if curr == '.' and nb_type == int :
-                curr = self.__eat_next__()
+                curr = self._eat_next()
                 nb_type=float
         return Literal('NB', nb_type(nb))
 
-    def __eat_name__(self) :
-        name = self.__peak_current__()
-        curr = self.__eat_to_next__()
+    def _eat_name(self) :
+        name = self._peak_current()
+        curr = self._eat_to_next()
         while curr in Tokenizer.NUMBERS or curr in Tokenizer.NAMING:
             name += curr
-            curr = self.__eat_to_next__()
+            curr = self._eat_to_next()
         return Token('NAME', name)
 
-    def __eat_quoted__(self) :
-        quote = self.__peak_current__()
+    def _eat_quoted(self) :
+        quote = self._peak_current()
         quoted = quote
-        curr = self.__eat_to_next__()
+        curr = self._eat_to_next()
         while curr != Tokenizer.CLOSING[quote]:
             quoted += curr
-            curr = self.__eat_to_next__()
+            curr = self._eat_to_next()
             if curr == '\\' :
-                quoted += curr + self.__eat_to_next__()
-                curr = self.__eat_to_next__()
+                quoted += curr + self._eat_to_next()
+                curr = self._eat_to_next()
         quoted += curr
-        self.__eat_to_next__()
+        self._eat_to_next()
         return Literal('STRING', quoted)
 
-    def __skip_comment__(self) :
-        curr = self.__peak_current__() + self.__eat_to_next__()
+    def _skip_comment(self) :
+        curr = self._peak_current() + self._eat_to_next()
         while curr != '*/' :
-            if self.__peak_next__() == None :
+            if self._peak_next() == None :
                 return
-            curr = self.__peak_current__() + self.__eat_to_next__()
+            curr = self._peak_current() + self._eat_to_next()
             
 
-    def __next__(self):
-        curr = self.__peak_current__()
+    def _next(self):
+        curr = self._peak_current()
         if curr is None :
             return None
         while curr in Tokenizer.BLANK :
-            curr = self.__eat_to_next__()
+            curr = self._eat_to_next()
 
         if curr in Tokenizer.NUMBERS :
-            return self.__eat_nb__()
+            return self._eat_nb__()
         elif curr in Tokenizer.NAMING :
-            return self.__eat_name__()
+            return self._eat_name()
         elif curr in Tokenizer.PARAS :
-            self.__eat_to_next__()
+            self._eat_to_next()
             return Token('PARA', curr)
         elif curr in Tokenizer.QUOTES :
-            return self.__eat_quoted__()
+            return self._eat_quoted()
         elif curr in Tokenizer.PONCTUATION: 
-            self.__eat_to_next__()
+            self._eat_to_next()
             return Token('PONCUTATION', curr)
         elif curr in Tokenizer.OPERATORS :
-            if curr == '/' and self.__peak_next__() == '*' :
-                self.__skip_comment__()
-                return self.__next__()
-            self.__eat_to_next__()
-            return self.__next__()
+            if curr == '/' and self._peak_next() == '*' :
+                self._skip_comment()
+                return self._next()
+            self._eat_to_next()
+            return self._next()
 
     def tokenize(self) :
         tokens = []
         tok= None
-        while (tok:=self.__next__()) :
+        while (tok:=self._next()) :
             tokens.append(tok)
 
         return tokens
