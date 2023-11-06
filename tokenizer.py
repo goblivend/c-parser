@@ -14,7 +14,7 @@ class Tokenizer :
         '{':'}'
     }
     PONCTUATION = ';.,'
-    OPERATORS = '+-/*^|&'
+    OPERATORS = '+-/*^|&=<>'
 
     def __init__(self, content) :
         self.content = content
@@ -100,8 +100,16 @@ class Tokenizer :
             if curr == '/' and self._peak_next() == '*' :
                 self._skip_comment()
                 return self._next()
+            if curr in '<>!=' and self._peak_next() == '=' :
+                curr += self._peak_next()
+                self._eat_to_next()
+
+            if curr in '&|' and self._peak_next() == curr :
+                curr += curr
+                self._eat_to_next()
+
             self._eat_to_next()
-            return self._next()
+            return Token('OPERATOR', curr)
 
     def tokenize(self) :
         tokens = []
