@@ -1,24 +1,22 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.11
 
 from tokenizer import Tokenizer
 
 INCLUDES = [
-    '#include <stdio.h>',
-    '#include <stdlib.h>',
-    '#include <string.h>'
+    '#include <stdio.h>\n',
+    '#include <stdlib.h>\n',
+    '#include <string.h>\n'
 ]
 
-def parse(filename:str): 
+def parse(filename:str):
     with open(filename, 'r') as f :
         lines = f.readlines()
 
     print(lines)
-    cleanLines = clean(lines)
-    print(cleanLines)
-    if not checkFeatures(cleanLines) :
+    if not checkFeatures(lines) :
         exit(2)
 
-    content = ''.join(getContent(cleanLines))
+    content = ''.join(getContent(lines))
     tokenizer = Tokenizer(content)
     print(tokenizer)
     tokens = tokenizer.tokenize()
@@ -35,10 +33,6 @@ def checkFeatures(lines) :
             valid = True
             print('Include ', line, 'Not yet handled')
     return valid
-
-
-def clean(lines) :
-    return  [line for line in [line.strip() for line in lines] if not line.startswith('//')]
 
 if __name__ == '__main__' :
     import sys

@@ -1,4 +1,4 @@
-from tokens import Token,Literal
+from tokens import Token,Literal,Comment,Type,Types
 
 class Tokenizer :
     NAMING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -14,18 +14,20 @@ class Tokenizer :
         '{':'}'
     }
     PONCTUATION = ';.,'
-    OPERATORS = '+-/*^|&=<>'
+    OPERATORS = '+-/*^|&=!<>?:'
+    DOUBLE_OPERATORS = ['++', '--', '+=', '-=', '*=', '/=', '^=', '&=', '|=', '==', '!=', '<=', '>=', '&&', '||', '<<', '>>']
 
     def __init__(self, content) :
         self.content = content
         self.length = len(content)
         self.index=0
-    
+
     def _peak_current(self) :
         if self.index >= self.length :
             return None
+        print(self.content[self.index])
         return self.content[self.index]
-    
+
     def _peak_next(self) :
         if self.index+1 >= self.length :
             return None
@@ -53,6 +55,8 @@ class Tokenizer :
         while curr in Tokenizer.NUMBERS or curr in Tokenizer.NAMING:
             name += curr
             curr = self._eat_to_next()
+        if name in Types.__members__ :
+            return Type(Types(name))
         return Token('NAME', name)
 
     def _eat_quoted(self) :
@@ -69,20 +73,33 @@ class Tokenizer :
         self._eat_to_next()
         return Literal('STRING', quoted)
 
-    def _skip_comment(self) :
+    def _eat_comment_block(self) :
+        comment = self._peak_current()
         curr = self._peak_current() + self._eat_to_next()
         while curr != '*/' :
             if self._peak_next() == None :
-                return
+                return Comment(comment)
+            comment += self._peak_current()
             curr = self._peak_current() + self._eat_to_next()
-            
+        comment += self._peak_current()
+        self._eat_to_next()
+        return Comment(comment)
+
+    def _eat_comment_line(self) :
+        comment = self._peak_current()
+        curr = self._eat_to_next()
+        while curr != None and curr != '\n' :
+            comment += curr
+            curr = self._eat_to_next()
+        return Comment(f'/* {comment[2:].strip()} */')
 
     def _next(self):
         curr = self._peak_current()
+
+        while curr != None and curr in Tokenizer.BLANK :
+            curr = self._eat_to_next()
         if curr is None :
             return None
-        while curr in Tokenizer.BLANK :
-            curr = self._eat_to_next()
 
         if curr in Tokenizer.NUMBERS :
             return self._eat_nb__()
@@ -93,19 +110,16 @@ class Tokenizer :
             return Token('PARA', curr)
         elif curr in Tokenizer.QUOTES :
             return self._eat_quoted()
-        elif curr in Tokenizer.PONCTUATION: 
+        elif curr in Tokenizer.PONCTUATION:
             self._eat_to_next()
             return Token('PONCUTATION', curr)
         elif curr in Tokenizer.OPERATORS :
+            if curr == '/' and self._peak_next() == '/' :
+                return self._eat_comment_line()
             if curr == '/' and self._peak_next() == '*' :
-                self._skip_comment()
-                return self._next()
-            if curr in '<>!=' and self._peak_next() == '=' :
+                return self._eat_comment_block()
+            if curr + self._peak_next() in Tokenizer.DOUBLE_OPERATORS :
                 curr += self._peak_next()
-                self._eat_to_next()
-
-            if curr in '&|' and self._peak_next() == curr :
-                curr += curr
                 self._eat_to_next()
 
             self._eat_to_next()
@@ -121,4 +135,3 @@ class Tokenizer :
 
     def __repr__(self) :
         return self.content[self.index:]
-
