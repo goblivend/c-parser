@@ -1,6 +1,6 @@
 from tokens import Token,Literal,Comment,Type,Types
 
-class Tokenizer :
+class Lexer :
     NAMING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
     NUMBERS = '0123456789'
     BLANK = ' \n\t'
@@ -25,7 +25,6 @@ class Tokenizer :
     def _peak_current(self) :
         if self.index >= self.length :
             return None
-        print(self.content[self.index])
         return self.content[self.index]
 
     def _peak_next(self) :
@@ -41,7 +40,7 @@ class Tokenizer :
         nb = self._peak_current()
         curr = self._eat_to_next()
         nb_type = int
-        while curr in Tokenizer.NUMBERS:
+        while curr in Lexer.NUMBERS:
             nb += curr
             curr = self._eat_to_next()
             if curr == '.' and nb_type == int :
@@ -52,7 +51,7 @@ class Tokenizer :
     def _eat_name(self) :
         name = self._peak_current()
         curr = self._eat_to_next()
-        while curr in Tokenizer.NUMBERS or curr in Tokenizer.NAMING:
+        while curr in Lexer.NUMBERS or curr in Lexer.NAMING:
             name += curr
             curr = self._eat_to_next()
         if name in Types.__members__ :
@@ -63,7 +62,7 @@ class Tokenizer :
         quote = self._peak_current()
         quoted = quote
         curr = self._eat_to_next()
-        while curr != Tokenizer.CLOSING[quote]:
+        while curr != Lexer.CLOSING[quote]:
             quoted += curr
             curr = self._eat_to_next()
             if curr == '\\' :
@@ -96,36 +95,36 @@ class Tokenizer :
     def _next(self):
         curr = self._peak_current()
 
-        while curr != None and curr in Tokenizer.BLANK :
+        while curr != None and curr in Lexer.BLANK :
             curr = self._eat_to_next()
         if curr is None :
             return None
 
-        if curr in Tokenizer.NUMBERS :
+        if curr in Lexer.NUMBERS :
             return self._eat_nb__()
-        elif curr in Tokenizer.NAMING :
+        elif curr in Lexer.NAMING :
             return self._eat_name()
-        elif curr in Tokenizer.PARAS :
+        elif curr in Lexer.PARAS :
             self._eat_to_next()
             return Token('PARA', curr)
-        elif curr in Tokenizer.QUOTES :
+        elif curr in Lexer.QUOTES :
             return self._eat_quoted()
-        elif curr in Tokenizer.PONCTUATION:
+        elif curr in Lexer.PONCTUATION:
             self._eat_to_next()
             return Token('PONCUTATION', curr)
-        elif curr in Tokenizer.OPERATORS :
+        elif curr in Lexer.OPERATORS :
             if curr == '/' and self._peak_next() == '/' :
                 return self._eat_comment_line()
             if curr == '/' and self._peak_next() == '*' :
                 return self._eat_comment_block()
-            if curr + self._peak_next() in Tokenizer.DOUBLE_OPERATORS :
+            if curr + self._peak_next() in Lexer.DOUBLE_OPERATORS :
                 curr += self._peak_next()
                 self._eat_to_next()
 
             self._eat_to_next()
             return Token('OPERATOR', curr)
 
-    def tokenize(self) :
+    def lex(self) :
         tokens = []
         tok= None
         while (tok:=self._next()) :

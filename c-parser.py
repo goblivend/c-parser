@@ -1,6 +1,9 @@
 #!/usr/bin/python3.11
 
-from tokenizer import Tokenizer
+from lexer import Lexer
+from lnlparser import Parser
+from nodes import NodeEncoder
+from json import dumps
 
 INCLUDES = [
     '#include <stdio.h>\n',
@@ -8,8 +11,8 @@ INCLUDES = [
     '#include <string.h>\n'
 ]
 
-def parse(filename:str):
-    with open(filename, 'r') as f :
+def transpile(inputFile:str, ):
+    with open(inputFile, 'r') as f :
         lines = f.readlines()
 
     print(lines)
@@ -17,11 +20,18 @@ def parse(filename:str):
         exit(2)
 
     content = ''.join(getContent(lines))
-    tokenizer = Tokenizer(content)
-    print(tokenizer)
-    tokens = tokenizer.tokenize()
+    lexer = Lexer(content)
+    tokens = lexer.lex()
     print(tokens)
     print(' '.join(str(token.value) for token in tokens))
+    parser = Parser(tokens)
+    ast = parser.parse()
+    print(ast)
+    # js = ast.to_json()
+    # res = dumps(js, indent=4, cls=NodeEncoder)
+    # with open(outputFile, 'w') as f :
+        # f.write(content)
+
 
 def getContent(lines) :
     return [line for line in lines if line not in INCLUDES]
@@ -36,8 +46,8 @@ def checkFeatures(lines) :
 
 if __name__ == '__main__' :
     import sys
-    if len(sys.argv) != 2 :
+    if len(sys.argv) != 3 :
         print('Usage: ')
-        print(f'./{sys.argv[0]} <filename>')
+        print(f'./{sys.argv[0]} <input file> <output file>')
         exit(1)
-    parse(sys.argv[1])
+    transpile(sys.argv[1], sys.argv[2])
