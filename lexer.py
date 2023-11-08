@@ -1,4 +1,4 @@
-from tokens import Token,TokenLiteral,TokenComment,TokenName,TokenOperator,TokenType,Types
+from tokens import Token,TokenLiteral,TokenComment,TokenName,TokenBinOperator,TokenUnOperator,TokenWhile,TokenIf,TokenElse,TokenType,Types
 
 class Lexer :
     NAMING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -15,6 +15,8 @@ class Lexer :
     }
     PONCTUATION = ';.,'
     OPERATORS = '+-/*^|&=!<>?:'
+    UNARY_OPERATORS = ['++', '--', '-', '!', '~']
+
     DOUBLE_OPERATORS = ['++', '--', '+=', '-=', '*=', '/=', '^=', '&=', '|=', '==', '!=', '<=', '>=', '&&', '||', '<<', '>>']
 
     def __init__(self, content) :
@@ -56,6 +58,12 @@ class Lexer :
             curr = self._eat_to_next()
         if name in [t.value for t in Types.__members__.values()] :
             return TokenType(Types(name))
+        elif name == 'while' :
+            return TokenWhile()
+        elif name == 'if' :
+            return TokenIf()
+        elif name == 'else' :
+            return TokenElse()
         return TokenName(name)
 
     def _eat_quoted(self) :
@@ -122,7 +130,8 @@ class Lexer :
                 self._eat_to_next()
 
             self._eat_to_next()
-            return TokenOperator(curr)
+
+            return TokenBinOperator(curr) if not curr in Lexer.UNARY_OPERATORS else TokenUnOperator(curr)
 
     def lex(self) :
         tokens = []
