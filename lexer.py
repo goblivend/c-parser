@@ -1,4 +1,4 @@
-from tokens import Token,Literal,Comment,Type,Types
+from tokens import Token,TokenLiteral,TokenComment,TokenName,TokenOperator,TokenType,Types
 
 class Lexer :
     NAMING = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -46,7 +46,7 @@ class Lexer :
             if curr == '.' and nb_type == int :
                 curr = self._eat_next()
                 nb_type=float
-        return Literal('NB', nb_type(nb))
+        return TokenLiteral(Types.INT, nb_type(nb))
 
     def _eat_name(self) :
         name = self._peak_current()
@@ -54,9 +54,9 @@ class Lexer :
         while curr in Lexer.NUMBERS or curr in Lexer.NAMING:
             name += curr
             curr = self._eat_to_next()
-        if name in Types.__members__ :
-            return Type(Types(name))
-        return Token('NAME', name)
+        if name in [t.value for t in Types.__members__.values()] :
+            return TokenType(Types(name))
+        return TokenName(name)
 
     def _eat_quoted(self) :
         quote = self._peak_current()
@@ -70,19 +70,19 @@ class Lexer :
                 curr = self._eat_to_next()
         quoted += curr
         self._eat_to_next()
-        return Literal('STRING', quoted)
+        return TokenLiteral(Types.CHAR, quoted)
 
     def _eat_comment_block(self) :
         comment = self._peak_current()
         curr = self._peak_current() + self._eat_to_next()
         while curr != '*/' :
             if self._peak_next() == None :
-                return Comment(comment)
+                return TokenComment(comment)
             comment += self._peak_current()
             curr = self._peak_current() + self._eat_to_next()
         comment += self._peak_current()
         self._eat_to_next()
-        return Comment(comment)
+        return TokenComment(comment)
 
     def _eat_comment_line(self) :
         comment = self._peak_current()
@@ -90,7 +90,7 @@ class Lexer :
         while curr != None and curr != '\n' :
             comment += curr
             curr = self._eat_to_next()
-        return Comment(f'/* {comment[2:].strip()} */')
+        return TokenComment(f'/* {comment[2:].strip()} */')
 
     def _next(self):
         curr = self._peak_current()
@@ -111,7 +111,7 @@ class Lexer :
             return self._eat_quoted()
         elif curr in Lexer.PONCTUATION:
             self._eat_to_next()
-            return Token('PONCUTATION', curr)
+            return Token('PONCTUATION', curr)
         elif curr in Lexer.OPERATORS :
             if curr == '/' and self._peak_next() == '/' :
                 return self._eat_comment_line()
@@ -122,7 +122,7 @@ class Lexer :
                 self._eat_to_next()
 
             self._eat_to_next()
-            return Token('OPERATOR', curr)
+            return TokenOperator(curr)
 
     def lex(self) :
         tokens = []

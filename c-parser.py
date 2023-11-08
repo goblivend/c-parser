@@ -11,7 +11,7 @@ INCLUDES = [
     '#include <string.h>\n'
 ]
 
-def transpile(inputFile:str, ):
+def transpile(inputFile:str, outputFile:str):
     with open(inputFile, 'r') as f :
         lines = f.readlines()
 
@@ -27,10 +27,13 @@ def transpile(inputFile:str, ):
     parser = Parser(tokens)
     ast = parser.parse()
     print(ast)
-    # js = ast.to_json()
-    # res = dumps(js, indent=4, cls=NodeEncoder)
-    # with open(outputFile, 'w') as f :
-        # f.write(content)
+    if ast == None :
+        print('Error while parsing')
+        exit(1)
+    js = ast.to_json()
+    res = dumps(js, indent=4, cls=NodeEncoder)
+    with open(outputFile, 'w') as f :
+        f.write(res)
 
 
 def getContent(lines) :

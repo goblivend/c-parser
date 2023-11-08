@@ -28,5 +28,5 @@ class NodeEncoder(json.JSONEncoder):
         elif isinstance(obj, Position):
             return {'x': obj.x, 'y': obj.y}
         elif isinstance(obj, Edge):
-            return {"source": obj.sourceId, "sourceHandle": obj.sourceHandle, "target": obj.targetId, "targetHandle": obj.targetHandle, "id": f"reactflow__edge-{obj.sourceId}{obj.sourceHandle}-{obj.targetId}{obj.targetHandle}", "selected": False}
+            return {"source": obj.sourceId, "sourceHandle": obj.sourceHandle, "target": obj.targetId, "targetHandle": obj.targetHandle, "id": f"reactflow__edge-{obj.sourceId}{obj.sourceHandle}-{obj.targetId}{obj.targetHandle}"}
         return json.JSONEncoder.default(self, obj)
