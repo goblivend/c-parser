@@ -12,38 +12,22 @@ class Parser :
     def _get_current(self) :
         if self.index >= self.nb_tokens :
             return None
-        self.tokens[self.index]
+        return self.tokens[self.index]
 
     def _next(self) :
         self.index += 1
         self.current = self._get_current()
         return self.current
 
-    def _parse_TODO(self) :
-        pass
-
     def _parse_function_dec(self, type:TokenType, name:TokenName) :
         parameters = []
         self._next()
         while self.current != Token('PARA', ')') :
-            print('Parsing dec parameters', self.current)
-            parameters.append(self._parse_TODO())
+            param = self._parse_expr()
+            if param != None :
+                parameters.append(param)
         self._next()
-        return FunDecAst(type, name, parameters, self._parse_TODO())
-
-    def _parse_variable(self, type:TokenType, name:TokenName) :
-        print('Parsing variable', type, name)
-        if self.current == TokenBinOperator('=') :
-            print('Parsing variable with value')
-            self._next()
-            val = self._parse_TODO()
-            return VarDecAst(type, name, val)
-        elif self.current == Token('PONCUTATION', ',') :
-            self.variables[name.value] = type
-            return None # No Need to declare Variables in LNL
-        elif self.current == Token('PONCTUATION', ';') :
-            self.variables[name.value] = type
-            return None
+        return FunDecAst(type, name.value, parameters, self._parse_curled_body())
 
     def _parse_function_or_variable(self, type:TokenType, name: TokenName) :
         if self._next() == Token('PARA', '(') :
@@ -53,7 +37,6 @@ class Parser :
     def _parse_type(self) :
         type_token = self.current
         next_token = self._next()
-        print('Parsing type')
         if next_token == None :
             return None
         elif isinstance(next_token, TokenName) :
@@ -61,20 +44,55 @@ class Parser :
         elif next_token == Token('PARA', ')') :
             return None
 
+    def _parse_if(self) :
+        self._next()
+        condition = self._parse_parenthesis()
+        body = self._parse_curled_or_line()
+        else_body = None
+        if isinstance(self.current, TokenElse)  :
+            self._next()
+            else_body = self._parse_curled_or_line()
+        return IfAst(condition, body, else_body)
+
+    def _parse_while(self) :
+        self._next()
+        condition = self._parse_parenthesis()
+        body = self._parse_curled_or_line()
+        return WhileAst(condition, body)
+
+    def _parse_curled_or_line(self) :
+        return self._parse_curled_body() if self.current == Token('PARA', '{') else self._parse_ari_expr()
+
+    def _parse_parenthesis(self) :
+        self._next()
+        expr = self._parse_ari_expr()
+        if self.current != Token('PARA', ')') :
+            raise Exception('Parenthesis must end with )')
+        self._next()
+        return expr
+
+    def _parse_variable(self, type:TokenType, name:TokenName) :
+        if self.current == TokenBinOperator('=') :
+            self._next()
+            val = self._parse_ari_expr()
+            return VarDecAst(type, name.value, val)
+        elif self.current == Token('PONCUTATION', ',') :
+            self.variables[name.value] = type
+            return None # No Need to declare Variables in LNL
+        elif self.current == Token('PONCTUATION', ';') :
+            self.variables[name.value] = type
+            return None
+
     def _parse_fun_call(self, name:TokenName) :
-        print('Parsing function call', name)
-        print('Next :', self.current)
         if self.current != Token('PARA', '(') :
             raise Exception('Function call must start with (, not ' + str(self.current) + ' at ' + str(self.index))
-
         self._next()
         parameters = []
         while self.current != Token('PARA', ')') and self.current != None :
-            print('Parsing parameters for call', self.current)
             if self.current == Token('PONCTUATION', ';') :
                 raise Exception('Function call must end with ), not ;')
-            res = self._parse_TODO()
-            if res != None :
+            res = self._parse_ari_expr()
+            if res is not None:
                 parameters.append(res)
 
             if self.current == Token('PONCTUATION', ',') :
@@ -83,15 +101,7 @@ class Parser :
         if self.current != Token('PARA', ')') :
             raise Exception('Function call must end with ), ')
         self._next()
-        return FunCallAst(name, parameters)
-
-    def _parse_parenthesis(self) :
-        self._next()
-        expr = self._parse_TODO()
-        if self.current != Token('PARA', ')') :
-            raise Exception('Parenthesis must end with )')
-        self._next()
-        return expr
+        return FunCallAst(name.value, parameters)
 
     def _parse_fun_call_or_var(self) :
         name = self.current
@@ -100,72 +110,75 @@ class Parser :
             return self._parse_fun_call(name)
         elif next == TokenBinOperator('=') :
             return self._parse_variable(self.variables[name.value], name)
+        else :
+            return VarAst(name.value)
 
-    def _parse_while(self) :
-        print('Parsing while')
-        self._next()
-        condition = self._parse_parenthesis()
-        body = self._parse_TODO()
-        return WhileAst(condition, body)
-
-    def _parse_if(self) :
-        print('Parsing if')
-        self._next()
-        condition = self._parse_parenthesis()
-        # TODO : If Not `{` then parse only one line
-        body = self._parse_TODO()
-        else_body = None
-        if isinstance(self.current, TokenElse)  :
-            self._next()
-            # TODO : If Not `{` then parse only one line
-            else_body = self._parse_TODO()
-
-        return IfAst(condition, body, else_body)
-
-    def _parse_switch(self) :
-        print('>>>>>>>>>>')
-        print('=============    Parsing', self.current)
-        print('<<<<<<<<<<')
-        if self.current == None :
+    def _parse_expr(self) :
+        token = self.current
+        if token == None :
             return None
-        elif isinstance(self.current, TokenType) :
+        elif isinstance(token, TokenType) :
             return self._parse_type()
-        elif isinstance(self.current, TokenComment) :
+        elif isinstance(token, TokenComment) :
             self._next()
-            return CommentAst(self.current.value)
-        elif isinstance(self.current, TokenName) :
+            return CommentAst(token.value)
+        elif isinstance(token, TokenName) :
             return self._parse_fun_call_or_var()
-        elif isinstance(self.current, TokenWhile) :
+        elif isinstance(token, TokenWhile) :
             return self._parse_while()
-        elif isinstance(self.current, TokenLiteral) :
+        elif isinstance(token, TokenLiteral) :
             self._next()
-            return LiteralAst(self.current.value, self.current.type)
-        elif self.current == Token('PARA', '(') :
-            print('Parsing parenthesis')
+            return LiteralAst(token.value, token.type)
+        elif token == Token('PARA', '(') :
             return self._parse_parenthesis()
 
-    def _parse(self) :
-        # If not in fun_dec : need macro or type
-        # If in fun_dec : need macro or type or variable or expression (arithmetic, function call, parenthesis, etc.)
-        # If in parenthesis : need expression
-        # If in variable : need `=` + expression or nothing
-        return self._parse_switch()
+    def _parse_ari_expr(self) :
+        ast = self._parse_expr()
+        while isinstance(self.current, TokenBinOperator) or isinstance(self.current, TokenUnOperator) :
+            op = self.current
+            self._next()
+            right = self._parse_expr()
+            if op.value == '>=' or op.value == '<=':
+                compare = BinOpAst(ast, op.value[0], right)
+                equal = BinOpAst(ast.copy(), '==', right.copy())
+                return BinOpAst(compare, '||', equal)
+            ast = BinOpAst(ast, op.value, right)
+        return ast
 
-    def _parse_body(self) :
+    def _parse(self) :
+        return self._parse_ari_expr()
+
+    def _parse_curled_body(self) :
+        if self.current != Token('PARA', '{') :
+            raise Exception('Curled body must end with {')
+        self._next()
         body = []
-        while True :
-            print('Parsing body')
+        while self.current != Token('PARA', '}') and self.current != None :
             element = self._parse()
-            if self.current == None :
-                break
             if element != None :
                 body.append(element)
             if self.current == Token('PONCTUATION', ';') :
                 self._next()
-                continue
-            elif not isinstance(body[-1], CommentAst) and not isinstance(body[-1], BodyAst) and not isinstance(body[-1], IfAst) and not isinstance(body[-1], WhileAst) and not isinstance(body[-1], FunDecAst) :
-                break
+        if self.current != Token('PARA', '}') :
+            raise Exception('Curled body must end with }')
+        self._next()
         return BodyAst(body)
+
+    def _parse_body(self) :
+        body = []
+        while True :
+            element = self._parse()
+            if element != None:
+                body.append(element)
+            if self.current == None :
+                break
+            if self.current == Token('PONCTUATION', ';') :
+                self._next()
+                continue
+        return BodyAst(body)
+
+    def _needs_semi_column(ast: Ast):
+        return not isinstance(ast, CommentAst) and not isinstance(ast, BodyAst) and not isinstance(ast, IfAst) and not isinstance(ast, WhileAst) and not isinstance(ast, FunDecAst)
 
     def parse(self) :
         return self._parse_body()

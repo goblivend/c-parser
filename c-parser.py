@@ -30,7 +30,7 @@ def transpile(inputFile:str, outputFile:str):
     if ast == None :
         print('Error while parsing')
         exit(1)
-    js = ast.to_json()
+    js = ast.to_json([0, 0])
     res = dumps(js, indent=4, cls=NodeEncoder)
     with open(outputFile, 'w') as f :
         f.write(res)

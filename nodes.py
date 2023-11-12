@@ -24,7 +24,7 @@ class Edge :
 class NodeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Node):
-            return {'id': obj.id, 'type': obj.type, 'position': obj.position, 'data':obj.data, 'width': obj.width, 'height': obj.height, 'selected': False, 'positionAbsolute': obj.position, 'dragging': False}
+            return {'id': obj.id, 'type': obj.type, 'position': obj.position, 'data':obj.data, 'width': obj.width, 'height': obj.height, 'selected': False, 'positionAbsolute': obj.position, 'dragging': False, 'sourcePosition': 'right', 'targetPosition': 'left'}
         elif isinstance(obj, Position):
             return {'x': obj.x, 'y': obj.y}
         elif isinstance(obj, Edge):

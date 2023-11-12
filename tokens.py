@@ -1,5 +1,13 @@
 from enum import StrEnum,auto
 
+
+class Types(StrEnum) :
+    Void=auto()
+    Int=auto()
+    Char=auto()
+    Float=auto()
+    Double=auto()
+
 class Token :
     def __init__(self, name, value) :
         self.name = name
@@ -14,9 +22,12 @@ class Token :
         return False
 
 class TokenLiteral(Token) :
-    def __init__(self, type, value):
+    def __init__(self, type:Types, value):
         super().__init__('LITERAL', value)
         self.type = type
+
+    def __repr__(self):
+        return f'<{self.name}:{self.type.name}:{self.value}>'
 
 class TokenComment(Token) :
     def __init__(self, message):
@@ -25,6 +36,9 @@ class TokenComment(Token) :
 class TokenName(Token) :
     def __init__(self, name):
         super().__init__('NAME', name)
+
+    def __repr__(self):
+        return self.value
 
 class TokenBinOperator(Token) :
     def __init__(self, operator):
@@ -39,6 +53,9 @@ class TokenType(Token) :
         super().__init__('TYPE', type.name)
         self.type = type
 
+    def __repr__(self) :
+        return self.type.value
+
 class TokenWhile(Token) :
     def __init__(self) :
         super().__init__('WHILE', 'while')
@@ -51,10 +68,3 @@ class TokenElse(Token) :
     def __init__(self) :
         super().__init__('ELSE', 'else')
 
-
-class Types(StrEnum) :
-    VOID=auto()
-    INT=auto()
-    CHAR=auto()
-    FLOAT=auto()
-    DOUBLE=auto()

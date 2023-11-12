@@ -48,7 +48,7 @@ class Lexer :
             if curr == '.' and nb_type == int :
                 curr = self._eat_next()
                 nb_type=float
-        return TokenLiteral(Types.INT, nb_type(nb))
+        return TokenLiteral(Types.Int, nb_type(nb))
 
     def _eat_name(self) :
         name = self._peak_current()
@@ -78,7 +78,7 @@ class Lexer :
                 curr = self._eat_to_next()
         quoted += curr
         self._eat_to_next()
-        return TokenLiteral(Types.CHAR, quoted)
+        return TokenLiteral(Types.Char, quoted)
 
     def _eat_comment_block(self) :
         comment = self._peak_current()
@@ -128,7 +128,6 @@ class Lexer :
             if curr + self._peak_next() in Lexer.DOUBLE_OPERATORS :
                 curr += self._peak_next()
                 self._eat_to_next()
-
             self._eat_to_next()
 
             return TokenBinOperator(curr) if not curr in Lexer.UNARY_OPERATORS else TokenUnOperator(curr)
