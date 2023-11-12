@@ -18,16 +18,16 @@ def _prefix_to_ast(tokens) :
         if isinstance(right, LiteralAst) :
             right.value = -right.value
             return right
-        return _generate_ast(LiteralAst(0, Types.INT), tok, right)
+        return _generate_ast(LiteralAst(0, TokenType(Types.Int)), tok, right)
     elif tok == TokenUnOperator('++') :
         right = _prefix_to_ast(tokens)
-        return VarDecAst(right.type, right.name, _generate_ast(right, TokenBinOperator('+'), LiteralAst(1, Types.INT)))
+        return VarDecAst(right.type, right.name, _generate_ast(right, TokenBinOperator('+'), LiteralAst(1, TokenType(Types.Int))))
     elif tok == TokenUnOperator('--') :
         right = _prefix_to_ast(tokens)
-        return VarDecAst(right.type, right.name, _generate_ast(right, TokenBinOperator('-'), LiteralAst(1, Types.INT)))
+        return VarDecAst(right.type, right.name, _generate_ast(right, TokenBinOperator('-'), LiteralAst(1, TokenType(Types.Int))))
     elif tok == TokenUnOperator('!') :
         right = _prefix_to_ast(tokens)
-        return _generate_ast(LiteralAst(0, Types.INT), TokenBinOperator('=='), right_prefix_to_ast)
+        return _generate_ast(LiteralAst(0, TokenType(Types.Int)), TokenBinOperator('=='), right)
     elif tok.value[0] not in ['!', '='] and len(tok.value) >= 2 and tok.value[1] == '=' :
         left = _prefix_to_ast(tokens)
         right = _prefix_to_ast(tokens)
