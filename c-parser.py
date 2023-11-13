@@ -15,15 +15,12 @@ def transpile(inputFile:str, outputFile:str):
     with open(inputFile, 'r') as f :
         lines = f.readlines()
 
-    print(lines)
     if not checkFeatures(lines) :
         exit(2)
 
     content = ''.join(getContent(lines))
     lexer = Lexer(content)
     tokens = lexer.lex()
-    print(tokens)
-    print(' '.join(str(token.value) for token in tokens))
     parser = Parser(tokens)
     ast = parser.parse()
     print(ast)

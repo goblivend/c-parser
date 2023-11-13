@@ -7,10 +7,12 @@ int main(void)
     int i;
     int a;
     int b;
-    
+
+
     i = 0;
     a = 0;
     b = 1;
+
     while ((i < 42))
     {
         a = ((b = (a + b)) - a);

@@ -1,5 +1,6 @@
 from tokens import Token,TokenLiteral,TokenComment,TokenName,TokenBinOperator,TokenUnOperator,TokenWhile,TokenIf,TokenElse,TokenType,Types
 from lnlast import Ast,IfAst,WhileAst,VarDecAst,VarAst,FunDecAst,CommentAst,BodyAst,LiteralAst,FunCallAst,BinOpAst
+import shuntingyard as sy
 
 class Parser :
     def __init__(self, tokens) -> None:
@@ -49,6 +50,8 @@ class Parser :
         condition = self._parse_parenthesis()
         body = self._parse_curled_or_line()
         else_body = None
+        if self.current == Token('PONCTUATION', ';') :
+            self._next()
         if isinstance(self.current, TokenElse)  :
             self._next()
             else_body = self._parse_curled_or_line()
@@ -126,6 +129,8 @@ class Parser :
             return self._parse_fun_call_or_var()
         elif isinstance(token, TokenWhile) :
             return self._parse_while()
+        elif isinstance(token, TokenIf) :
+            return self._parse_if()
         elif isinstance(token, TokenLiteral) :
             self._next()
             return LiteralAst(token.value, token.type)
@@ -133,17 +138,20 @@ class Parser :
             return self._parse_parenthesis()
 
     def _parse_ari_expr(self) :
-        ast = self._parse_expr()
-        while isinstance(self.current, TokenBinOperator) or isinstance(self.current, TokenUnOperator) :
-            op = self.current
-            self._next()
-            right = self._parse_expr()
+        '''
             if op.value == '>=' or op.value == '<=':
                 compare = BinOpAst(ast, op.value[0], right)
                 equal = BinOpAst(ast.copy(), '==', right.copy())
                 return BinOpAst(compare, '||', equal)
-            ast = BinOpAst(ast, op.value, right)
-        return ast
+        '''
+        tokens = [self._parse_expr()]
+        while isinstance(self.current, TokenBinOperator) or isinstance(self.current, TokenUnOperator) :
+            tokens.append(self.current)
+            self._next()
+            tokens.append(self._parse_expr())
+
+        print(tokens)
+        return sy.evaluate(tokens)
 
     def _parse(self) :
         return self._parse_ari_expr()
