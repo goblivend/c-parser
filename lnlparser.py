@@ -153,16 +153,13 @@ class Parser :
         print(tokens)
         return sy.evaluate(tokens)
 
-    def _parse(self) :
-        return self._parse_ari_expr()
-
     def _parse_curled_body(self) :
         if self.current != Token('PARA', '{') :
             raise Exception('Curled body must end with {')
         self._next()
         body = []
         while self.current != Token('PARA', '}') and self.current != None :
-            element = self._parse()
+            element = self._parse_ari_expr()
             if element != None :
                 body.append(element)
             if self.current == Token('PONCTUATION', ';') :
@@ -175,7 +172,7 @@ class Parser :
     def _parse_body(self) :
         body = []
         while True :
-            element = self._parse()
+            element = self._parse_ari_expr()
             if element != None:
                 body.append(element)
             if self.current == None :
@@ -184,9 +181,6 @@ class Parser :
                 self._next()
                 continue
         return BodyAst(body)
-
-    def _needs_semi_column(ast: Ast):
-        return not isinstance(ast, CommentAst) and not isinstance(ast, BodyAst) and not isinstance(ast, IfAst) and not isinstance(ast, WhileAst) and not isinstance(ast, FunDecAst)
 
     def parse(self) :
         return self._parse_body()

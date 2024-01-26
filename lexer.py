@@ -72,10 +72,9 @@ class Lexer :
         curr = self._eat_to_next()
         while curr != Lexer.CLOSING[quote]:
             quoted += curr
-            curr = self._eat_to_next()
             if curr == '\\' :
                 quoted += curr + self._eat_to_next()
-                curr = self._eat_to_next()
+            curr = self._eat_to_next()
         quoted += curr
         self._eat_to_next()
         return TokenLiteral(Types.Char, quoted)

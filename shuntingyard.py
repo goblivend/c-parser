@@ -76,9 +76,9 @@ def _infix_to_prefix(tokens) :
         if isinstance(tok, TokenBinOperator) or isinstance(tok, TokenUnOperator):
             while len(operators) > 0 and precedence[operators[-1].value] >= precedence[tok.value] :
                 output.insert(0, operators.pop())
-            operators.insert(0,tok)
+            operators.append(tok)
         else :
-            output.append(tok)
+            output.insert(0, tok)
     while len(operators) > 0 :
         output.insert(0, operators.pop())
     print(output)
